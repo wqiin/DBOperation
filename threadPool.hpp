@@ -85,7 +85,7 @@ private:
     std::mutex m_mtx;
     std::condition_variable m_cv;
     std::vector<std::thread> m_vecWorkerThreads;
-    std::queue<std::function<void()> > m_queTasks;
+    std::queue<std::function<void()>> m_queTasks;
 };
 }
 

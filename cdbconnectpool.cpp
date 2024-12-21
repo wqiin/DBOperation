@@ -16,9 +16,7 @@ void CDBConnectPool::connect2DB()
 {
     int nTryTime = 3;
     for(size_t ii = 0; ii < this->m_nConnCount; ii++){
-        DBConnPtr pConnTemp(nullptr, &mysql_close);
-
-        pConnTemp.reset(mysql_init(NULL));
+        DBConnPtr pConnTemp(mysql_init(NULL), &mysql_close);
         if(!pConnTemp){
             if(0 == --nTryTime)
                 throw std::runtime_error("failed to calling 'mysql_init'...");
@@ -33,7 +31,6 @@ void CDBConnectPool::connect2DB()
                                        DBparams.nPort, NULL, 0);
 
         if(nullptr != pRet){
-            //m_queConns.emplace(std::move(pConnTemp));
             m_lstConns.emplace_back(false, std::move(pConnTemp));
         }else{
             this->m_strErrMsg = std::string(mysql_error(pConnTemp.get()));
@@ -69,8 +66,7 @@ std::pair<std::atomic<bool>, CDBConnectPool::DBConnPtr> & CDBConnectPool::getACo
     //if all conn being busy, and creat a new connection
     int nTryTime = 3;
     for(size_t ii = 0; ii < 3; ii++){
-        DBConnPtr pConnTemp(nullptr, &mysql_close);
-        pConnTemp.reset(mysql_init(NULL));
+        DBConnPtr pConnTemp(mysql_init(NULL), &mysql_close);
         if(!pConnTemp){
             if(0 == --nTryTime)
                 throw std::runtime_error("failed to calling 'mysql_init'...");

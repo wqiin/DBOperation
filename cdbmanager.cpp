@@ -1,6 +1,7 @@
 #include "cdbmanager.h"
 
 #include <iostream>
+#include <utility>
 
 CDBManager::CDBManager(const size_t nThreadCount/*=4*/, const size_t nConnCount/*=10*/):m_threadPool(nThreadCount), m_connPool(nConnCount)
 {}
@@ -14,24 +15,24 @@ auto CDBManager::submit(Func && func, Args&&... args)->std::future<decltype(func
 
 CDBManager::optResult CDBManager::query(const std::string & strSQL)
 {
-    if(strSQL.empty())
-        return std::nullopt;
-
     auto query_lambda = [this, strSQL]()->std::pair<std::string, query_result>{
+        if(strSQL.empty())
+            return {std::string("empty sql statement..."), query_result()};
+
         auto & pConn = this->m_connPool.getAConn();
         CDBConnectPool::ConnManager connManger(pConn);
 
-        std::cout << "thread_id:" << std::this_thread::get_id() << "  conn_address:" << pConn.second.get() << std::endl;
+        //std::cout << "thread_id:" << std::this_thread::get_id() << "  conn_address:" << pConn.second.get() << std::endl;
 
         //perform db query
         if (mysql_query(pConn.second.get(), strSQL.c_str())) {
-            return {std::string(mysql_error(pConn.second.get())), {}};
+            return {std::string(mysql_error(pConn.second.get())), query_result()};
         }
 
         //get the result
         std::unique_ptr<MYSQL_RES, decltype(&mysql_free_result)> pRes(mysql_store_result(pConn.second.get()), &mysql_free_result);
         if (nullptr == pRes) {
-            return {std::string(mysql_error(pConn.second.get())), {}};
+            return {std::string(mysql_error(pConn.second.get())), query_result()};
         }
 
         //get the result of the query
@@ -51,8 +52,31 @@ CDBManager::optResult CDBManager::query(const std::string & strSQL)
             mpResult.emplace(nRowCount++, std::move(mpFiledValue));
         }
 
-        return {std::string(), std::move(mpResult)};
+        return std::make_pair(std::string(), std::move(mpResult));
     };
 
-    return this->submit(query_lambda);
+    return this->submit(std::move(query_lambda));
+}
+
+
+
+CDBManager::updateResult CDBManager::update(const std::string & strSQL)
+{
+    auto update_lambda = [this, strSQL]()->std::pair<bool, std::string>{
+        if(strSQL.empty()){
+            return {false, std::string("empty sql statement...")};
+        }
+
+        auto & pConn = this->m_connPool.getAConn();
+        CDBConnectPool::ConnManager connManger(pConn);
+
+        //perform db query
+        if (mysql_query(pConn.second.get(), strSQL.c_str())) {
+            return {false, std::string(mysql_error(pConn.second.get()))};
+        }else{
+            return {true, {}};
+        }
+    };
+
+    return this->submit(std::move(update_lambda));
 }

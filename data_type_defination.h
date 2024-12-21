@@ -37,19 +37,6 @@ struct StTime{
     int nHour = -1;
     int nMinute = -1;
     int nSecond = -1;
-    /*
-    std::istream & operator>>(std::istream & is) {
-        char chColon1 = 0, chColon2 = 0;
-        is >> nHour >> chColon1 >> nMinute >> chColon2 >> nSecond;
-
-        //check whether parsing ok
-        if (!is || chColon1 != ':' || chColon2 != ':') {
-            is.setstate(std::ios::failbit);  //setting failbit flag, marking parsing failure
-        }
-
-        return is;
-    }
-*/
 
     //overload as a friend function
     friend std::istream & operator>>(std::istream & is, StTime & time) {

@@ -11,28 +11,9 @@ public:
     CMySQL() = default;
     ~CMySQL() = default;
 
-    // void setParams(const StDBParams & stDBParams);
-
-    // //connect to db
-    // bool connectDB();
-
-    // const std::string & getErrMsg() const;
-
-    bool query_table(std::vector<StCourse> & vecResult);
-
-    // template<class T>
-    // T getItem(const size_t nIndex, const std::string & strFieldName);
-
-private:
-         //bool query(const std::string & strQuery);
-
-private:
-         // StDBParams m_stDBParams;
-         // std::unique_ptr<MYSQL, decltype(&mysql_close)> m_pConn;
-
-    // std::string m_strErrMsg;
-
-    // hash_map<std::uint64_t, hash_map<std::string, std::string>> m_mpResult;
+    //operating some basic table
+    bool query_course(std::vector<StCourse> & vecResult);
+    bool update_course(const std::string & strSQL);
 };
 
 #endif // CMYSQL_H

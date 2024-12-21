@@ -15,14 +15,6 @@ private:
     using DBConnPtr = std::unique_ptr<MYSQL, decltype(&mysql_close)>;
 
 public:
-    CDBConnectPool(const size_t nConnCount);
-    ~CDBConnectPool() = default;
-
-    const std::string & getErrMsg() const;
-    int getConnCount() const;
-
-    std::pair<std::atomic<bool>, DBConnPtr> & getAConn();
-
     //manager the DB conn returned by method getAConn
     class ConnManager{
     public:
@@ -36,6 +28,20 @@ public:
     private:
         std::pair<std::atomic<bool>, DBConnPtr> & m_pairConn;
     };
+
+
+    explicit CDBConnectPool(const size_t nConnCount);
+    ~CDBConnectPool() = default;
+
+    CDBConnectPool(const CDBConnectPool &) = delete;
+    CDBConnectPool(const CDBConnectPool &&) = delete;
+    CDBConnectPool & operator=(const CDBConnectPool &) = delete;
+    CDBConnectPool & operator=(const CDBConnectPool &&) = delete;
+
+    std::pair<std::atomic<bool>, DBConnPtr> & getAConn();
+
+    const std::string & getErrMsg() const;
+    int getConnCount() const;
 
 private:
     void connect2DB();
