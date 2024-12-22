@@ -15,6 +15,7 @@ typedef struct ST_dbParams{
     std::string strDBName;
 }StDBParams;
 
+//selt-customed struct with input and output stream function accompliment
 struct StDate{
     int nYear = -1;
     int nMonth = -1;
@@ -160,7 +161,6 @@ struct StCircle{
         return os;
     }
 };
-
 
 
 

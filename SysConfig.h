@@ -1,6 +1,8 @@
 #ifndef SYSCONFIG_H
 #define SYSCONFIG_H
 
+//global system configuration file
+
 #include "data_type_defination.h"
 
 const StDBParams DBparams = {

@@ -10,8 +10,10 @@ template<typename key, typename value>
 using hash_map = std::unordered_map<key, value>;
 using map_result = hash_map<std::uint64_t, hash_map<std::string, std::string>>;
 
-
+//empty value when some field in db query result being empty
 #define _NO_VALUE_ ""
+
+//such the class being designed to manage the results from db query
 class query_result : public map_result{
 public:
     inline static std::atomic<int> nCopyTimes = 0;
@@ -81,36 +83,45 @@ public:
 };
 
 
+//such the class being designed to manage the thread pool and db connection pool
 class CDBManager
 {
 public:
     static CDBManager & getInst(){
-        static CDBManager inst(4, 8);
+        static CDBManager inst(4, 8);//4 threads and 8 db connections
         return inst;
     }
 
-    //db query operation interface
+    //performing the db query operation, return error message and empty query result on some errors occuring, or query result and empty error message
     using optResult = std::future<std::pair<std::string, query_result>>;
     optResult query(const std::string & strSQL);
 
-    //add, delete and update operation interface
+
+    //performing db update operation, such update, add, insert, return true and empty error message on sccuess, or fale and related error message
     using updateResult = std::future<std::pair<bool, std::string>>;
     updateResult update(const std::string & strSQL);
 
+
+    //performing db binary data update operation in accordance with the given table name, field name, condition statement and file name, meaning set the given file name as the given field value in given table name, return true and empty error message, or false and related error message
     updateResult updateBin(const std::string & strTableName,
                            const std::string & strFieldName,
                            const std::string & strFileName,
                            const std::string & strWhere);
 
-    bool binQuery();
+    //performing db binary data query operation in accordance with the given table name, field name and condition statement, return -1(unsigned, meaning 0xFFFFFFFFFFFFFFFF) and empty pointer on failure, or binary data length and related data pointer
+    using binResult = std::future<std::pair<std::uint64_t, std::shared_ptr<char[]>>>;
+    binResult binQuery(const std::string & strTableName,
+                       const std::string & strFieldName,
+                       const std::string & strWhere);
 
+    //execute the given sql statement, return false on some error occurring and related error message, or true and empty error message
     using execResult = std::future<std::pair<bool, std::string>>;
     execResult execute(const std::string & strSQL);
 
 private:
     explicit CDBManager(const size_t nThreadCount = 4, const size_t nConnCount = 10);
 
-    //sumbit the some db operation task into the thread pool
+    //submit a task into thread pool, return related future object
     template<typename Func, typename... Args>
     auto submit(Func && func, Args&&... args)->std::future<decltype(func(args...))>;
 

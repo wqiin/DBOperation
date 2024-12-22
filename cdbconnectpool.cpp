@@ -6,12 +6,16 @@
 
 CDBConnectPool::CDBConnectPool(const size_t nConnCount)
 {
-    if(0 != nConnCount)
+    if(nConnCount >= 0)
         this->m_nConnCount = nConnCount;
+    else
+        this->m_nConnCount = 1;
 
+    //creat db connection in accordance with nConnCount
     this->connect2DB();
 }
 
+//creat the given db connection, and adding them into m_lstConns
 void CDBConnectPool::connect2DB()
 {
     int nTryTime = 3;
@@ -40,17 +44,20 @@ void CDBConnectPool::connect2DB()
     }
 }
 
-
+//return related error message when creating connection
 const std::string & CDBConnectPool::getErrMsg() const
 {
     return this->m_strErrMsg;
 }
 
+//return the db connection count in m_lstConns
 int CDBConnectPool::getConnCount() const
 {
     return this->m_nConnCount;
 }
 
+//return a free db connection from m_lstConns, and it would creat a new db connection when all conneciton being busy, the returned value should be managed by class ConnManager
+//the first item marking whether the connection being or not, true for busy, false for free
 std::pair<std::atomic<bool>, CDBConnectPool::DBConnPtr> & CDBConnectPool::getAConn()
 {
     {
@@ -82,6 +89,7 @@ std::pair<std::atomic<bool>, CDBConnectPool::DBConnPtr> & CDBConnectPool::getACo
         if(nullptr != pRet){
             std::lock_guard<std::mutex> lock_guard(this->m_mtx);
             m_lstConns.emplace_back(true, std::move(pConnTemp));//making flag busy
+            m_nConnCount += 1;
             return m_lstConns.back();
         }else{
             this->m_strErrMsg = std::string(mysql_error(pConnTemp.get()));

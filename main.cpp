@@ -5,14 +5,21 @@
 
 #include <iostream>
 
+char * pCrtTable = "CREATE TABLE users ( \
+    user_id INT AUTO_INCREMENT PRIMARY KEY, \
+        username VARCHAR(100) NOT NULL,       \
+        password VARCHAR(255) NOT NULL,             \
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP )";
 
 int main(int argc, char *argv[])
 {
     void(argc),void(argv);
 
+    //string format method usage
     std::string strFmt = Tools::format("Hello, {}! Your score is {}.", "Alice", 95);
     std::cout << strFmt << std::endl;
 
+    //string split method usage
     auto && vecSplit = Tools::split("123_456_789_ ", "_");
     for(const auto & item : vecSplit)
         std::cout << item << "--";
@@ -61,12 +68,16 @@ int main(int argc, char *argv[])
     adu();
 
 
-    CMySQL sql;
-    //sql.updateBin();
-
-    if(!sql.creatFieldIfNotExist("course", "new_method_field", "ALTER TABLE course ADD COLUMN new_method_field INT")){
+    if(!CMySQL::creatFieldIfNotExist("course", "new_method_field", "ALTER TABLE course ADD COLUMN new_method_field INT")){
         std::cout << "Some errors occured when operiation\n";
     }
 
+    //create a table in accordance with the given sql statement
+    bool bRet = CMySQL::execSQL(pCrtTable);
+    if(!bRet){
+        std::cout << "execute Error\n";
+    }else{
+        std::cout << "execute ok\n'";
+    }
     return 0;
 }

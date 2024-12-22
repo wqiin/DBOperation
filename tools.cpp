@@ -1,7 +1,10 @@
 #include "tools.h"
 
+#include <cmath>
+
 namespace Tools {
 
+//split the strSrc in accordance with the strSplit
 std::vector<std::string> split(const std::string& strSrc, const std::string& strSplit) {
     std::vector<std::string> result;
 
@@ -29,6 +32,18 @@ std::vector<std::string> split(const std::string& strSrc, const std::string& str
     }
 
     return result;
+}
+
+//return true on a being equal to b, or false
+bool fEqual(double a, double b /*= 0.0*/)
+{
+    double fEpli = 0.000001;
+
+    if(std::fabs(a - b) <= fEpli){
+        return true;
+    }
+
+    return false;
 }
 
 } // namespace Tools

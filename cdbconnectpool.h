@@ -29,7 +29,6 @@ public:
         std::pair<std::atomic<bool>, DBConnPtr> & m_pairConn;
     };
 
-
     explicit CDBConnectPool(const size_t nConnCount);
     ~CDBConnectPool() = default;
 
@@ -38,12 +37,18 @@ public:
     CDBConnectPool & operator=(const CDBConnectPool &) = delete;
     CDBConnectPool & operator=(const CDBConnectPool &&) = delete;
 
+    //return a free db connection from m_lstConns, and it would creat a new db connection when all conneciton being busy, the returned value should be managed by class ConnManager
+    //the first item marking whether the connection being or not, true for busy, false for free
     std::pair<std::atomic<bool>, DBConnPtr> & getAConn();
 
+    //return related error message when creating connection
     const std::string & getErrMsg() const;
+
+    //return the db connection count in m_lstConns
     int getConnCount() const;
 
 private:
+    //creat the given db connection, and adding them into m_lstConns
     void connect2DB();
 
 private:
@@ -54,7 +59,7 @@ private:
     std::mutex m_mtx;
 
     std::string m_strErrMsg;
-    size_t m_nConnCount = 2;
+    size_t m_nConnCount = 0;
 };
 
 #endif // CDBCONNECTPOOL_H

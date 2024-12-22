@@ -2,7 +2,7 @@
 
 #include "cdbmanager.h"
 #include "tools.h"
-#include "SysConfig.h""
+#include "SysConfig.h"
 
 bool CMySQL::query_course(std::vector<StCourse> & vecResult)
 {
@@ -59,7 +59,8 @@ bool CMySQL::updateBin()
 }
 
 
-bool CMySQL::checkFiledExist(const std::string & strTableName, const std::string & strFieldName)
+//check whether the given field existing or not in the given table, return true on existing or false
+bool CMySQL::checkFieldExist(const std::string & strTableName, const std::string & strFieldName)
 {
     const std::string strSQL = Tools::format("SELECT COUNT(*) as isExist FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '{}' AND TABLE_NAME = '{}' AND COLUMN_NAME = '{}'", DBparams.strDBName, strTableName, strFieldName);
 
@@ -72,6 +73,8 @@ bool CMySQL::checkFiledExist(const std::string & strTableName, const std::string
     return mpResults.getItem<int>(0, "isExist");
 }
 
+
+//execute the given sql statement,return true on executuion success, or false
 bool CMySQL::execSQL(const std::string & strSQL)
 {
     auto && [bIsOk, strErrMsg] = DBOPT.execute(strSQL).get();
@@ -83,10 +86,11 @@ bool CMySQL::execSQL(const std::string & strSQL)
     return true;
 }
 
-
+//check the given field existing or not, and create it if not existing with the given sql statement as the third parameter
+//return true on creation success or existing already, or falses
 bool CMySQL::creatFieldIfNotExist(const std::string & strTableName, const std::string & strFieldName, const std::string & strSQL)
 {
-    if(!checkFiledExist(strTableName, strFieldName)){
+    if(!checkFieldExist(strTableName, strFieldName)){
         return execSQL(strSQL);
     }
 

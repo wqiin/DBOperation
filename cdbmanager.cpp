@@ -15,13 +15,14 @@ using pairResult = std::pair<bool, std::string>;
 CDBManager::CDBManager(const size_t nThreadCount/*=4*/, const size_t nConnCount/*=10*/):m_threadPool(nThreadCount), m_connPool(nConnCount)
 {}
 
-
+//submit a task into thread pool, return related future object
 template<typename Func, typename... Args>
 auto CDBManager::submit(Func && func, Args&&... args)->std::future<decltype(func(args...))>
 {
     return m_threadPool.addTask(func, args...);
 }
 
+//performing the db query operation, return error message and empty query result on some errors occuring, or query result and empty error message
 CDBManager::optResult CDBManager::query(const std::string & strSQL)
 {
     auto query_lambda = [this, strSQL]()->std::pair<std::string, query_result>{
@@ -67,6 +68,7 @@ CDBManager::optResult CDBManager::query(const std::string & strSQL)
     return this->submit(std::move(query_lambda));
 }
 
+//performing db update operation, such update, add, insert, return true and empty error message on sccuess, or fale and related error message
 CDBManager::updateResult CDBManager::update(const std::string & strSQL)
 {
     auto update_lambda = [this, strSQL]()->pairResult{
@@ -89,6 +91,7 @@ CDBManager::updateResult CDBManager::update(const std::string & strSQL)
 }
 
 
+//performing db binary data update operation in accordance with the given table name, field name, condition statement and file name, meaning set the given file name as the given field value in given table name, return true and empty error message, or false and related error message
 CDBManager::updateResult CDBManager::updateBin( const std::string & strTableName,
                                                 const std::string & strFieldName,
                                                 const std::string & strFileName,
@@ -139,53 +142,7 @@ CDBManager::updateResult CDBManager::updateBin( const std::string & strTableName
 }
 
 
-
-
-bool CDBManager::binQuery()
-{
-    {
-        auto & pConn = this->m_connPool.getAConn();
-        const char *query = "SELECT image FROM course WHERE id = 53";
-
-        mysql_query(pConn.second.get(), query);
-
-        MYSQL_RES * res = mysql_store_result(pConn.second.get());
-        //int nRoe = mysql_affected_rows(pConn.second.get());
-
-        MYSQL_ROW curRow = nullptr;
-        unsigned long * pSize = nullptr;
-        char * pTemp = nullptr;
-
-        while((curRow = mysql_fetch_row(res))){
-
-            pSize = mysql_fetch_lengths(res);
-
-            pTemp = new char[pSize[0]];
-            int nSize = sizeof(pSize[0]);
-            memset(pTemp, 0x00, nSize);
-
-            memcpy(pTemp, curRow[0], pSize[0]);
-            break;
-        }
-
-        // 将图片保存为文件（例如 pic.jpg）
-        std::ofstream outFile("/Users/wqiin/Desktop/fetched_pic.jpg", std::ios::binary);
-        if (!outFile) {
-            return EXIT_FAILURE;
-        }
-
-        outFile.write(pTemp, pSize[0]);  // 写入图片数据
-        outFile.close();
-        //cout << "Image successfully saved to file." << endl;
-
-        mysql_free_result(res);
-
-        return EXIT_SUCCESS;
-    }
-}
-
-
-
+//execute the given sql statement, return false on some error occurring and related error message, or true
 CDBManager::execResult CDBManager::execute(const std::string & strSQL)
 {
     auto exec_lambda = [strSQL, this]()->pairResult{
@@ -202,3 +159,41 @@ CDBManager::execResult CDBManager::execute(const std::string & strSQL)
 
     return this->submit(std::move(exec_lambda));
 }
+
+
+//performing db binary data query operation in accordance with the given table name, field name and condition statement, return -1(unsigned, meaning 0xFFFFFFFFFFFFFFFF) and empty pointer on failure, or binary data length and related data pointer
+CDBManager::binResult CDBManager::binQuery(const std::string & strTableName,
+                                           const std::string & strFieldName,
+                                           const std::string & strWhere)
+{
+    auto binQuery_lambda = [strTableName, strFieldName, strWhere, this]()->std::pair<std::uint64_t, std::shared_ptr<char[]>>{
+        auto & pConn = this->m_connPool.getAConn();
+        CDBConnectPool::ConnManager connManager(pConn);
+
+        auto && strSQL = Tools::format("SELECT {} FROM {} WHERE {}", strFieldName, strTableName, strWhere);
+        if (mysql_query(pConn.second.get(), strSQL.c_str())) {
+            return {-1, {}};
+        }
+
+        std::unique_ptr<MYSQL_RES, decltype(&mysql_free_result)> pRes(nullptr, &mysql_free_result);
+        pRes.reset(mysql_store_result(pConn.second.get()));
+
+        MYSQL_ROW curRow = nullptr;
+        while((curRow = mysql_fetch_row(pRes.get()))){
+            auto pSize = mysql_fetch_lengths(pRes.get());
+            std::shared_ptr<char []> pBinData(new char[pSize[0]]);
+            std::memset(pBinData.get(), 0x00, pSize[0]);
+            std::memcpy(pBinData.get(), curRow[0], pSize[0]);
+
+            return {*pSize, pBinData};
+        }
+
+        return {-1, {}};
+    };
+
+    return this->submit(std::move(binQuery_lambda));
+}
+
+
+
+

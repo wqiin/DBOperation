@@ -8,7 +8,7 @@
 #include <chrono>
 
 namespace Tools {
-
+//used to measurment the time cost between codes
 class timeElapsed {
 private:
     std::chrono::high_resolution_clock::time_point start_time;
@@ -29,7 +29,7 @@ public:
     }
 };
 
-
+//string format function
 std::string format(const std::string& fmt);
 
 template <typename T>
@@ -38,8 +38,12 @@ std::string format(const std::string& fmt, T&& arg);
 template <typename T, typename... Args>
 std::string format(const std::string& fmt, T&& arg, Args&&... args);
 
-std::vector<std::string> split(const std::string& strSrc, const std::string& strSplit);
+//return true on a being equal to b, or false. In default conditon, such the function could be used to
+//judge whether a being equal to zero
+bool fEqual(double a, double b = 0.0);
 
+//split the strSrc in accordance with the strSplit
+std::vector<std::string> split(const std::string& strSrc, const std::string& strSplit);
 
 template <typename T>
 std::string format(const std::string& fmt, T&& arg) {
@@ -68,6 +72,7 @@ std::string format(const std::string& fmt, T&& arg, Args&&... args) {
         return fmt;
     }
 }
+
 
 } // namespace Tools
 
