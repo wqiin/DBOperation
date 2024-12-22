@@ -4,14 +4,13 @@
 #include "threadPool.hpp"
 #include "cdbconnectpool.h"
 
+#include <optional>
 #include <sstream>
 
 template<typename key, typename value>
 using hash_map = std::unordered_map<key, value>;
 using map_result = hash_map<std::uint64_t, hash_map<std::string, std::string>>;
 
-
-#define _NO_VALUE_ ""
 class query_result : public map_result{
 public:
     inline static std::atomic<int> nCopyTimes = 0;
@@ -27,6 +26,7 @@ public:
         nMoveTime += 1;
     }
 
+
     //get the value in No.nIndex row and filed name being strFieldName, otherwise throw relative expection with error message
     template<class T>
     T getItem(const size_t nIndex, const std::string & strFieldName)
@@ -37,16 +37,11 @@ public:
         if(strFieldName.empty())
             throw std::runtime_error("empty field name");
 
-        //no such the field name in query result
-        if(!this->at(nIndex).count(strFieldName)){
-            return T();
-        }
-
-        const std::string & strValue = this->at(nIndex).at(strFieldName);
-        if(std::string(_NO_VALUE_) == strValue)
-            return T();
+        if(!this->at(nIndex).count(strFieldName))
+            throw std::runtime_error("invalid filed name access or no such the field in query result:[" + strFieldName + std::string("]"));
 
         T retValue;
+        const std::string & strValue = this->at(nIndex).at(strFieldName);
         std::istringstream stream(strValue);
         if (!(stream >> retValue)) {
             throw std::invalid_argument("invalid conversion from string to " + std::string(typeid(T).name()));
@@ -56,7 +51,7 @@ public:
     }
 
     // left value assign operator override
-    query_result & operator = (const query_result & other) {
+    query_result & operator= (const query_result & other) {
         if (this == &other) {
             return *this;
         }
@@ -68,7 +63,7 @@ public:
     }
 
     //right value assign operator override
-    query_result & operator = (const query_result && other) {
+    query_result & operator= (const query_result && other) {
         if (this == &other) {  // 检查自赋值
             return *this;
         }
@@ -96,16 +91,6 @@ public:
     //add, delete and update operation interface
     using updateResult = std::future<std::pair<bool, std::string>>;
     updateResult update(const std::string & strSQL);
-
-    updateResult updateBin(const std::string & strTableName,
-                           const std::string & strFieldName,
-                           const std::string & strFileName,
-                           const std::string & strWhere);
-
-    bool binQuery();
-
-    using execResult = std::future<std::pair<bool, std::string>>;
-    execResult execute(const std::string & strSQL);
 
 private:
     explicit CDBManager(const size_t nThreadCount = 4, const size_t nConnCount = 10);

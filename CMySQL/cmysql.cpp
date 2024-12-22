@@ -1,8 +1,7 @@
 #include "cmysql.h"
 
 #include "cdbmanager.h"
-#include "tools.h"
-#include "SysConfig.h""
+
 
 bool CMySQL::query_course(std::vector<StCourse> & vecResult)
 {
@@ -43,51 +42,6 @@ bool CMySQL::update_course(const std::string & strSQL)
     if(!bIsOK){
         std::cout << "update error message:" << strErrMsg << std::endl;
         return false;
-    }
-
-    return true;
-}
-
-bool CMySQL::updateBin()
-{
-    auto [bIsOk, strErrMsg] = DBOPT.updateBin("girls", "pic", "/Users/wqiin/Desktop/pic.jpg", "id = 5").get();
-
-    if(!bIsOk)
-        std::cout << "error message: " << strErrMsg << std::endl;;
-
-    return bIsOk;
-}
-
-
-bool CMySQL::checkFiledExist(const std::string & strTableName, const std::string & strFieldName)
-{
-    const std::string strSQL = Tools::format("SELECT COUNT(*) as isExist FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = '{}' AND TABLE_NAME = '{}' AND COLUMN_NAME = '{}'", DBparams.strDBName, strTableName, strFieldName);
-
-    auto && [strErrMsg, mpResults] = DBOPT.query(strSQL).get();
-    if(!strErrMsg.empty()){
-        std::cout << "Db operation error message:"  << strErrMsg << std::endl;
-        return false;
-    }
-
-    return mpResults.getItem<int>(0, "isExist");
-}
-
-bool CMySQL::execSQL(const std::string & strSQL)
-{
-    auto && [bIsOk, strErrMsg] = DBOPT.execute(strSQL).get();
-    if(!bIsOk){
-        std::cout << "error messge of execute:" << strErrMsg << std::endl;
-        return false;
-    }
-
-    return true;
-}
-
-
-bool CMySQL::creatFieldIfNotExist(const std::string & strTableName, const std::string & strFieldName, const std::string & strSQL)
-{
-    if(!checkFiledExist(strTableName, strFieldName)){
-        return execSQL(strSQL);
     }
 
     return true;

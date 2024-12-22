@@ -1,6 +1,6 @@
 QT -= core
 
-CONFIG += c++20 cmdline
+CONFIG += c++17 cmdline
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -15,8 +15,7 @@ SOURCES += \
         cdbconnectpool.cpp \
         cdbmanager.cpp \
         cmysql.cpp \
-        main.cpp \
-        tools.cpp
+        main.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -29,5 +28,4 @@ HEADERS += \
           cdbmanager.h \
           cmysql.h \
           data_type_defination.h \
-          threadPool.hpp \
-          tools.h
+          threadPool.hpp

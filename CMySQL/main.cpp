@@ -1,23 +1,13 @@
 
 #include "cmysql.h"
-#include "threadPool.hpp"
-#include "tools.h"
+#include "cdbmanager.h""
 
 #include <iostream>
-
+#include <chrono>
 
 int main(int argc, char *argv[])
 {
     void(argc),void(argv);
-
-    std::string strFmt = Tools::format("Hello, {}! Your score is {}.", "Alice", 95);
-    std::cout << strFmt << std::endl;
-
-    auto && vecSplit = Tools::split("123_456_789_ ", "_");
-    for(const auto & item : vecSplit)
-        std::cout << item << "--";
-    std::cout << "\n";
-
 
     auto test_lambda = [](){
         CMySQL sql;
@@ -25,20 +15,26 @@ int main(int argc, char *argv[])
         sql.query_course(vecResult);
     };
 
-
+/*
     UT::CThreadPool pool(4);
     std::vector<std::future<void>> vecRet;
-    Tools::timeElapsed tmElapse;
+
+    auto start = std::chrono::high_resolution_clock::now();
     for(int ii = 0; ii< 10000; ii++){
         vecRet.emplace_back(pool.addTask(test_lambda));
     }
 
-    std::cout << "Code execution time: " << tmElapse.timeCost() << " milliseconds" << std::endl;
     for(auto & item : vecRet){
         item.get();
     }
 
-    std::cout << "Code execution time: " << tmElapse.timeCost() << " milliseconds" << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Code execution time: " << duration.count() << " milliseconds" << std::endl;
+
+    std::cout << "copy times:" << query_result::nCopyTimes << std::endl;
+    std::cout << "move times:" << query_result::nMoveTime << std::endl;
+    */
 
     auto adu = [](){
         const char * pUpdateSQL = "update course set name='this is the name of the course' where id=54";
@@ -59,14 +55,6 @@ int main(int argc, char *argv[])
             std::cout << "delete sql OK\n";
     };
     adu();
-
-
-    CMySQL sql;
-    //sql.updateBin();
-
-    if(!sql.creatFieldIfNotExist("course", "new_method_field", "ALTER TABLE course ADD COLUMN new_method_field INT")){
-        std::cout << "Some errors occured when operiation\n";
-    }
 
     return 0;
 }
