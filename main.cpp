@@ -5,16 +5,25 @@
 
 #include <iostream>
 
-char * pCrtTable = "CREATE TABLE users ( \
+const char * pCrtTable = "CREATE TABLE users ( \
     user_id INT AUTO_INCREMENT PRIMARY KEY, \
         username VARCHAR(100) NOT NULL,       \
         password VARCHAR(255) NOT NULL,             \
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP )";
 
+class test{
+public:
+    test() = default;
+    ~test(){
+        std::cout << "desconstructor calling\n";
+    }
+};
+
 int main(int argc, char *argv[])
 {
     void(argc),void(argv);
 
+    /*
     //string format method usage
     std::string strFmt = Tools::format("Hello, {}! Your score is {}.", "Alice", 95);
     std::cout << strFmt << std::endl;
@@ -24,7 +33,7 @@ int main(int argc, char *argv[])
     for(const auto & item : vecSplit)
         std::cout << item << "--";
     std::cout << "\n";
-
+    */
 
     auto test_lambda = [](){
         CMySQL sql;
@@ -44,7 +53,6 @@ int main(int argc, char *argv[])
     for(auto & item : vecRet){
         item.get();
     }
-
     std::cout << "Code execution time: " << tmElapse.timeCost() << " milliseconds" << std::endl;
 
     auto adu = [](){
@@ -79,5 +87,8 @@ int main(int argc, char *argv[])
     }else{
         std::cout << "execute ok\n'";
     }
+
+
+
     return 0;
 }

@@ -6,9 +6,15 @@
 
 #include <sstream>
 
+using rowNo = std::uint64_t;
+using fieldName = std::string;
+using fieldValue = std::string;
+
 template<typename key, typename value>
 using hash_map = std::unordered_map<key, value>;
-using map_result = hash_map<std::uint64_t, hash_map<std::string, std::string>>;
+
+using mpDBQueryResult = hash_map<rowNo, hash_map<fieldName, fieldValue>>;
+using map_result = hash_map<rowNo, hash_map<fieldName, fieldValue>>;
 
 //empty value when some field in db query result being empty
 #define _NO_VALUE_ ""

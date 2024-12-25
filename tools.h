@@ -5,7 +5,7 @@
 #include <ostream>
 #include <sstream>
 #include <vector>
-#include <chrono>
+
 
 namespace Tools {
 //used to measurment the time cost between codes
@@ -73,6 +73,12 @@ std::string format(const std::string& fmt, T&& arg, Args&&... args) {
     }
 }
 
+//create the given target directory, return true and empty error message on success, or false and related error message
+using errMsg = std::string;
+std::pair<bool, errMsg> makeDirectory(const std::string & strDir);
+
+//get the datetime with format like '2023-12-23 10:30:25'
+std::string getDateTime();
 
 } // namespace Tools
 
