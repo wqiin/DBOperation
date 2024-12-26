@@ -9,6 +9,12 @@
 #include <atomic>
 #include <mutex>
 
+
+//used to distinguish whether the connection busy or not
+constexpr bool CONN_FREE = false;   //db connection being busy
+constexpr bool CONN_BUSY = true;    //db connection being free and available
+
+
 class CDBConnectPool
 {
 private:
@@ -22,7 +28,7 @@ public:
 
         //making such the conn not busy and available
         ~ConnManager(){
-            m_pairConn.first.store(false);
+            m_pairConn.first.store(CONN_FREE);
         }
 
     private:

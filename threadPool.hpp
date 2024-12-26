@@ -66,7 +66,7 @@ public:
     auto addTask(Func && func, Args&&... args) -> std::future<decltype(func(args...))>
     {
         if (m_bIsStop.load())
-            throw std::runtime_error("Such the object had been deleted");
+            throw std::runtime_error("Such the object had been deleted, it is illegal to add tasks...");
 
         auto pTask = std::make_shared<std::packaged_task<decltype(func(args...))()>>(
             std::bind(std::forward<Func>(func), std::forward<Args>(args)...));

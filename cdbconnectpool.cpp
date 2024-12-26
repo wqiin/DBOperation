@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 
+
 CDBConnectPool::CDBConnectPool(const size_t nConnCount)
 {
     if(nConnCount >= 0)
@@ -35,7 +36,7 @@ void CDBConnectPool::connect2DB()
                                        DBparams.nPort, NULL, 0);
 
         if(nullptr != pRet){
-            m_lstConns.emplace_back(false, std::move(pConnTemp));
+            m_lstConns.emplace_back(CONN_FREE, std::move(pConnTemp));
         }else{
             this->m_strErrMsg = std::string(mysql_error(pConnTemp.get()));
             if(0 == --nTryTime)
@@ -64,13 +65,13 @@ std::pair<std::atomic<bool>, CDBConnectPool::DBConnPtr> & CDBConnectPool::getACo
         std::lock_guard<std::mutex> lock_guard(this->m_mtx);
         for(auto & conn : m_lstConns){
             if(false == conn.first.load()){
-                conn.first.store(true);
+                conn.first.store(CONN_BUSY);//set such the connection busy
                 return conn;
             }
         }
     }
 
-    //if all conn being busy, and creat a new connection
+    //if all conn being busy, and creat a new connection and add it m_lstConns
     int nTryTime = 3;
     for(size_t ii = 0; ii < 3; ii++){
         DBConnPtr pConnTemp(mysql_init(NULL), &mysql_close);
@@ -88,7 +89,7 @@ std::pair<std::atomic<bool>, CDBConnectPool::DBConnPtr> & CDBConnectPool::getACo
                                        DBparams.nPort, NULL, 0);
         if(nullptr != pRet){
             std::lock_guard<std::mutex> lock_guard(this->m_mtx);
-            m_lstConns.emplace_back(true, std::move(pConnTemp));//making flag busy
+            m_lstConns.emplace_back(CONN_BUSY, std::move(pConnTemp));
             m_nConnCount += 1;
             return m_lstConns.back();
         }else{
@@ -97,4 +98,6 @@ std::pair<std::atomic<bool>, CDBConnectPool::DBConnPtr> & CDBConnectPool::getACo
                 throw std::runtime_error(this->m_strErrMsg);
         }
     }
+
+    throw std::runtime_error("some error occured for " + this->m_strErrMsg);
 }

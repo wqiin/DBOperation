@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 namespace Tools {
 
 //split the strSrc in accordance with the strSplit
-std::vector<std::string> split(const std::string& strSrc, const std::string& strSplit) {
+std::vector<std::string> split(const std::string & strSrc, const std::string & strSplit) {
     std::vector<std::string> result;
 
     if (strSplit.empty()) {
